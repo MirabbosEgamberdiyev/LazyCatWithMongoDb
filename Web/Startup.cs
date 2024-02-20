@@ -22,6 +22,8 @@ public static class Startup
 
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        #region CORS Policy
+
         services.AddCors(options =>
         {
             options.AddPolicy(CorsPolicyName,
@@ -33,8 +35,13 @@ public static class Startup
                 });
         });
 
+        #endregion
+
         services.AddControllers();
         services.AddEndpointsApiExplorer();
+
+        #region Default DI Services
+
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -60,14 +67,21 @@ public static class Startup
             });
         });
 
+        #endregion
+
         BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.BsonType.String));
         BsonSerializer.RegisterSerializer(new DateTimeSerializer(MongoDB.Bson.BsonType.String));
         BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(MongoDB.Bson.BsonType.String));
 
+
+        #region DBContext
         var mongoDbSettings = configuration.GetSection("MongoDbSettings");
         var connectionString = mongoDbSettings["ConnectionString"];
         var databaseName = mongoDbSettings["DatabaseName"];
         services.AddScoped(m => new ApplicationDbContext(connectionString!, databaseName!));
+        #endregion
+
+        #region Identity
 
         var mongoDbIdentityConfig = new MongoDbIdentityConfiguration
         {
@@ -92,6 +106,9 @@ public static class Startup
                 .AddRoleManager<RoleManager<ApplicationRole>>()
                 .AddDefaultTokenProviders();
 
+        #endregion
+
+        #region JWT
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -112,20 +129,19 @@ public static class Startup
                 ClockSkew = TimeSpan.Zero
             };
         });
+        #endregion
+
+        #region Custom DI Services
 
         services.AddTransient<IIdentityService, IdentityService>();
+
+        #endregion
     }
 
     public static void Configure(this IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (env.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
         app.UseMiddleware<ErrorHandlingMiddleware>();
 
@@ -140,5 +156,54 @@ public static class Startup
         {
             endpoints.MapControllers();
         });
+
+        app.SeedRolesToDatabase().Wait();
     }
+
+    #region Seed SuperAdmin Role and User
+
+    public static async Task SeedRolesToDatabase(this IApplicationBuilder app)
+    {
+        using var scope = app.ApplicationServices.CreateScope();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var roles = new[] { "Admin", "User", "SuperAdmin" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                var result = await roleManager.CreateAsync(new ApplicationRole(role));
+                if (!result.Succeeded)
+                {
+                    throw new Exception($"Failed to create role '{role}'.");
+                }
+            }
+        }
+
+        var superAdmin = await userManager.FindByNameAsync("SuperAdmin");
+        if (superAdmin == null)
+        {
+            var admin = new ApplicationUser
+            {
+                UserName = "SuperAdmin",
+                Email = "superadmin@example.com"
+            };
+
+            var adminPassword = "Admin.123$";
+
+            var createAdminResult = await userManager.CreateAsync(admin, adminPassword);
+            if (createAdminResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(admin, "SuperAdmin");
+            }
+            else
+            {
+                throw new Exception($"Failed to create SuperAdmin user: {string.Join(",", createAdminResult.Errors.Select(e => e.Description))}");
+            }
+        }
+    }
+
+    #endregion
 }

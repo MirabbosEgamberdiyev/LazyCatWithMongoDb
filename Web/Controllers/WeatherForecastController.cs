@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Web.Controllers;
 
 [ApiController]
-[Authorize(Roles = "User, Admin")]
+//[Authorize(Roles = "User, Admin")]
 
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
@@ -23,7 +23,7 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
-    //[Authorize(IdentityRoles.ADMIN)]
+    [Authorize(Roles = "SuperAdmin")]
     public IEnumerable<WeatherForecast> Get()
     {
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast

@@ -1,53 +1,108 @@
-﻿using System.Net;
-using System.Threading.Tasks;
+﻿using Application.Commens.Exceptions;
 using Application.Dtos;
 using Application.Interfaces;
-using Domain.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
-namespace Web.Controllers
+namespace Application.Controllers;
+
+[ApiController]
+[Route("api/authentication")]
+public class AuthenticationController(IIdentityService identityService) : ControllerBase
 {
-    [ApiController]
-    [Route("api/authenticate")]
-    public class AuthenticationController : ControllerBase
+    private readonly IIdentityService _identityService = identityService;
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly IIdentityService _identityService;
-
-        public AuthenticationController(RoleManager<ApplicationRole> roleManager,
-                                        IIdentityService identityService)
+        try
         {
-            _roleManager = roleManager;
-            _identityService = identityService;
+            var response = await _identityService.RegisterAsync(request);
+            return response.Success ? Ok(response) : Conflict(response);
         }
-
-        [HttpPost]
-        [Route("roles/add")]
-        public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
+        catch(CustomException ex)
         {
-            var role = new ApplicationRole { Name = request.Role };
-            var result = await _roleManager.CreateAsync(role);
-
-            return Ok(new { message = "Role created successfully" });
+            return BadRequest(ex.Message);
         }
-
-        [HttpPost]
-        [Route("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        catch (ValidationException ex)
         {
-            var result = await _identityService.RegisterAsync(request);
-
-            return result.Success ? Ok(result) : BadRequest(result.Message);
+            return BadRequest(ex.Message);
         }
-
-        [HttpPost]
-        [Route("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        catch (Exception ex)
         {
-            var result = await _identityService.LoginAsync(request);
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
 
-            return result.Success ? Ok(result) : BadRequest(result.Message);
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequest request)
+    {
+        try
+        {
+            var response = await _identityService.LoginAsync(request);
+            return response.Success ? Ok(response) : Unauthorized(response);
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("logout")]
+    public async Task<IActionResult> Logout(LoginRequest request)
+    {
+        try
+        {
+            await _identityService.LogoutAsync(request);
+            return NoContent();
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpPatch("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    {
+        try
+        {
+            await _identityService.ChangePasswordAsync(request);
+            return NoContent();
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("delete-account")]
+    public async Task<IActionResult> DeleteAccount(LoginRequest request)
+    {
+        try
+        {
+            await _identityService.DeleteAccountAsync(request);
+            return NoContent();
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
         }
     }
 }
