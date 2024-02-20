@@ -1,11 +1,12 @@
+
 using Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDependencyInjection(builder.Configuration);
+builder.Services.ConfigureServices(builder.Configuration);
 
 var app = builder.Build();
 
-app.AddMiddleware(app.Environment);
+app.Configure(app.Environment);
 
 app.Run();

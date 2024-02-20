@@ -1,5 +1,4 @@
-﻿using Application.Commens.Constants;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Application.Dtos;
 
@@ -15,5 +14,5 @@ public class RegisterRequest
     public string Password { get; set; } = string.Empty;
     [Required, DataType(DataType.Password), Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = string.Empty;
-    //public List<string> Roles { get; set; } = new();
+    public List<string> Roles { get; set; } = new();
 }

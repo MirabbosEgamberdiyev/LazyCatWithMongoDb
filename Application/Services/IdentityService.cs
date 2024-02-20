@@ -1,17 +1,23 @@
 ﻿using Application.Commens.Helpers;
+using Application.Common.Helpers;
 using Application.Dtos;
 using Application.Interfaces;
+using Domain.Entities;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
 namespace Application.Services;
 
 public class IdentityService(UserManager<ApplicationUser> userManager,
-                             IConfiguration configuration) : IIdentityService
+                             IConfiguration configuration,
+                             RoleManager<ApplicationRole> roleManager) : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IConfiguration _configuration = configuration;
+    private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
+
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
@@ -51,17 +57,19 @@ public class IdentityService(UserManager<ApplicationUser> userManager,
             {
                 FullName = request.FullName,
                 Email = request.Email,
-                ConcurrencyStamp = Guid.NewGuid().ToString(),
-                UserName = request.Email,
+                UserName = request.Email
             };
 
             var createUserResult = await _userManager.CreateAsync(user, request.Password);
             if (!createUserResult.Succeeded)
                 return new RegisterResponse { Message = $"Create user failed {createUserResult?.Errors?.First()?.Description}", Success = false };
 
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(user, "USER");
-            if (!addUserToRoleResult.Succeeded)
-                return new RegisterResponse { Message = $"Create user succeeded but could not add user to role {addUserToRoleResult?.Errors?.First()?.Description}", Success = false };
+            foreach (var role in request.Roles)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                    await _roleManager.CreateAsync(new ApplicationRole(role));
+                    await _userManager.AddToRoleAsync(user, role);
+            }
 
             return new RegisterResponse { Success = true, Message = "User registered successfully" };
         }
