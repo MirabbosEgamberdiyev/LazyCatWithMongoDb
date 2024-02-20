@@ -52,12 +52,13 @@ public class AuthenticationController(IIdentityService identityService) : Contro
         }
     }
 
-    [HttpDelete("logout")]
-    public async Task<IActionResult> Logout(LoginRequest request)
+
+    [HttpPatch("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
         try
         {
-            await _identityService.LogoutAsync(request);
+            await _identityService.ChangePasswordAsync(request);
             return NoContent();
         }
         catch (CustomException ex)
@@ -70,12 +71,13 @@ public class AuthenticationController(IIdentityService identityService) : Contro
         }
     }
 
-    [HttpPatch("change-password")]
-    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+
+    [HttpDelete("logout")]
+    public async Task<IActionResult> Logout(LoginRequest request)
     {
         try
         {
-            await _identityService.ChangePasswordAsync(request);
+            await _identityService.LogoutAsync(request);
             return NoContent();
         }
         catch (CustomException ex)
