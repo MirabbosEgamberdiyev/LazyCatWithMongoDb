@@ -1,18 +1,4 @@
-﻿using System.Text;
-using Application.Interfaces;
-using Application.Services;
-using AspNetCore.Identity.MongoDbCore.Extensions;
-using AspNetCore.Identity.MongoDbCore.Infrastructure;
-using Domain.Entities;
-using Domain.Models;
-using Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using Web.HandleException;
+﻿
 
 namespace Web;
 

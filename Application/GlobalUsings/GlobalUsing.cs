@@ -1,0 +1,13 @@
+﻿global using Application.Commens.Exceptions;
+global using Application.Common.Helpers;
+global using Application.Dtos;
+global using Application.Interfaces;
+global using Domain.Entities;
+global using Domain.Models;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.Configuration;
+global using System.ComponentModel.DataAnnotations;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.Security.Claims;
+global using System.Text;
+global using Microsoft.IdentityModel.Tokens;
