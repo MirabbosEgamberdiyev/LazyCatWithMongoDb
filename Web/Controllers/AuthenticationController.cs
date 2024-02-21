@@ -1,5 +1,7 @@
 ﻿
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace Application.Controllers;
 
 [ApiController]
@@ -17,6 +19,76 @@ public class AuthenticationController(IIdentityService identityService) : Contro
             return response.Success ? Ok(response) : Conflict(response);
         }
         catch(CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpPost("register-user")]
+    public async Task<IActionResult> RegisterUser(RegistrationRequest request)
+    {
+        try
+        {
+            var response = await _identityService.RegisterUserAsync(request);
+            return response.Success ? Ok(response) : Conflict(response);
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpPost("create-admin")]
+    [Authorize(Roles = "SuperAdmin")]
+
+    public async Task<IActionResult> CreateAdmin(RegistrationRequest request)
+    {
+        try
+        {
+            var response = await _identityService.RegisterAdminAsync(request);
+            return response.Success ? Ok(response) : Conflict(response);
+        }
+        catch (CustomException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
+        }
+    }
+
+    [HttpPost("create-super-admin")]
+    [Authorize(Roles = "SuperAdmin")]
+
+    public async Task<IActionResult> CreateSuperAdmin(RegistrationRequest request)
+    {
+        try
+        {
+            var response = await _identityService.RegisterSuperAdminAsync(request);
+            return response.Success ? Ok(response) : Conflict(response);
+        }
+        catch (CustomException ex)
         {
             return BadRequest(ex.Message);
         }
@@ -54,8 +126,8 @@ public class AuthenticationController(IIdentityService identityService) : Contro
     {
         try
         {
-            await _identityService.ChangePasswordAsync(request);
-            return NoContent();
+            var response =  await _identityService.ChangePasswordAsync(request);
+            return Ok(response);
         }
         catch (CustomException ex)
         {
