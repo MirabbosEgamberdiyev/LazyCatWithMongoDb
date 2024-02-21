@@ -180,9 +180,9 @@ public static class Startup
                 Email = "superadmin@example.com"
             };
 
-            var adminPassword = "Admin.123$";
+            var SuperAdminPassword = "SuperAdmin.123$";
 
-            var createAdminResult = await userManager.CreateAsync(admin, adminPassword);
+            var createAdminResult = await userManager.CreateAsync(admin, SuperAdminPassword);
             if (createAdminResult.Succeeded)
             {
                 await userManager.AddToRoleAsync(admin, "SuperAdmin");

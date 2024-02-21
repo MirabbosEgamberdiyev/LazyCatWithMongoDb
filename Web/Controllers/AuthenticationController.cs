@@ -1,6 +1,5 @@
 ﻿
 
-using Microsoft.AspNetCore.Authorization;
 
 namespace Application.Controllers;
 
@@ -80,7 +79,6 @@ public class AuthenticationController(IIdentityService identityService) : Contro
 
     [HttpPost("create-super-admin")]
     [Authorize(Roles = "SuperAdmin")]
-
     public async Task<IActionResult> CreateSuperAdmin(RegistrationRequest request)
     {
         try

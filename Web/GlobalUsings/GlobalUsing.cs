@@ -19,3 +19,4 @@ global using Microsoft.OpenApi.Models;
 global using MongoDB.Bson.Serialization;
 global using MongoDB.Bson.Serialization.Serializers;
 global using Web.HandleException;
+global using Microsoft.AspNetCore.Authorization;
