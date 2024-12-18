@@ -53,6 +53,7 @@ public class AuthenticationController(IIdentityService identityService) : Contro
         }
     }
 
+    #region CreateAdmin 
     [HttpPost("create-admin")]
     [Authorize(Roles = "SuperAdmin")]
 
@@ -76,6 +77,9 @@ public class AuthenticationController(IIdentityService identityService) : Contro
             return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
         }
     }
+
+    #endregion
+
 
     [HttpPost("create-super-admin")]
     [Authorize(Roles = "SuperAdmin")]
