@@ -176,5 +176,7 @@ public class AuthenticationController(IIdentityService identityService) : Contro
         {
             return StatusCode(500, $"An error occurred while processing the request: {ex.Message}");
         }
+
+        
     }
 }
